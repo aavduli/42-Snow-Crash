@@ -115,6 +115,54 @@ Use this flag/token as the password for `level02`.
 ---
 Next: add `level02` notes in the same style.
 
+## Level 02
+
+First, extract the file from the VM to read it locally:
+
+```bash
+scp -P 4242 level02@192.168.64.6:/home/user/level02/level02.pcap ~/path/to/snowcrash
+```
+
+Now, we have a `level02.pcap` that appeared in home directory. This is a Internet catch. if we read it with `tcpdump`, its some messy strings, not really readable.... like that :
+```text
+07:23:12.267566 IP 59.233.235.218.39247 > 59.233.235.223.12121: Flags [S], seq 2635601089, win 14600, options [mss 1460,sackOK,TS val 18592800 ecr 0,nop,wscale 7], length 0
+E..<..@.@.J>;...;....O/Y..........9............
+... ........
+```
+Let's use Wireshark, will be more readable :
+
+..wwwbugs login:
+l
+.l
+e
+.e
+v
+.v
+e
+.e
+l
+.l
+X
+.X
+..
+Password:
+ft_wandr...NDRel.L0L
+.
+..
+Login incorrect
+wwwbugs login:
+```
+we look for the password, it will certainly be the one for `flag02` !, every dot is a backspace, so the password become :
+```text
+ft_waNDReL0L
+```
+it give the flag :
+```text
+kooda2puivaav1idi4f57q8iq
+```
+
+Use this flag/token as the password for `level03`.
+
 
 # Any tips for other flags :
 
